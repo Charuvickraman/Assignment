@@ -1,0 +1,170 @@
+Question 1:
+        from collections import defaultdict, deque
+
+
+class Task:
+    def __init__(self, id, duration):
+        self.id = id
+        self.duration = duration
+        self.dependencies = []
+        self.EST = 0  # Earliest Start Time
+        self.EFT = 0  # Earliest Finish Time
+        self.LST = float('inf')  # Latest Start Time
+        self.LFT = float('inf')  # Latest Finish Time
+
+
+def add_dependency(tasks, task_id, dependency_id):
+    tasks[task_id].dependencies.append(dependency_id)
+
+
+def calculate_earliest_times(tasks, start_task_id):
+    queue = deque([start_task_id])
+    while queue:
+        current_task_id = queue.popleft()
+        current_task = tasks[current_task_id]
+        current_task.EFT = current_task.EST + current_task.duration
+
+        for task_id, task in tasks.items():
+            if current_task_id in task.dependencies:
+                task.EST = max(task.EST, current_task.EFT)
+                queue.append(task_id)
+
+
+def calculate_latest_times(tasks, end_task_id):
+    tasks[end_task_id].LFT = tasks[end_task_id].EFT
+    tasks[end_task_id].LST = tasks[end_task_id].LFT - tasks[end_task_id].duration
+    queue = deque([end_task_id])
+    while queue:
+        current_task_id = queue.popleft()
+        current_task = tasks[current_task_id]
+
+        for task_id, task in tasks.items():
+            if current_task_id in task.dependencies:
+                task.LFT = min(task.LFT, current_task.LST)
+                task.LST = task.LFT - task.duration
+                queue.append(task_id)
+
+
+def find_project_completion_time(tasks):
+    latest_finish_time = max(task.EFT for task in tasks.values())
+    earliest_finish_time = min(task.LFT for task in tasks.values())
+    return earliest_finish_time, latest_finish_time
+
+
+def main():
+
+    tasks = {
+        'T_START': Task('T_START', 0),
+        'T1': Task('T1', 4),
+        'T2': Task('T2', 3),
+        'T3': Task('T3', 2),
+        'T4': Task('T4', 1)
+    }
+
+    
+    add_dependency(tasks, 'T1', 'T_START')
+    add_dependency(tasks, 'T2', 'T1')
+    add_dependency(tasks, 'T3', 'T1')
+    add_dependency(tasks, 'T4', 'T2')
+    add_dependency(tasks, 'T4', 'T3')
+
+   
+    calculate_earliest_times(tasks, 'T_START')
+
+   
+    end_task_id = 'T4'  # In this example, T4 is the last task to complete
+
+
+    calculate_latest_times(tasks, end_task_id)
+
+   
+    earliest_finish_time, latest_finish_time = find_project_completion_time(tasks)
+
+    
+    print(f"Earliest completion time: {earliest_finish_time}")
+    print(f"Latest completion time: {latest_finish_time}")
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+Question 2:
+        from collections import deque, defaultdict
+
+class FriendshipGraph:
+    def __init__(self):
+        self.graph = defaultdict(set)
+    
+    def add_friendship(self, person1, person2):
+        self.graph[person1].add(person2)
+        self.graph[person2].add(person1)
+    
+    def get_friends(self, person):
+        return self.graph[person]
+    
+    def get_common_friends(self, person1, person2):
+        return self.graph[person1] & self.graph[person2]
+    
+    def find_nth_connection(self, person1, person2):
+        if person1 == person2:
+            return 0
+        
+        visited = {person1}
+        queue = deque([(person1, 0)])
+        
+        while queue:
+            current_person, level = queue.popleft()
+            for friend in self.graph[current_person]:
+                if friend == person2:
+                    return level + 1
+                if friend not in visited:
+                    visited.add(friend)
+                    queue.append((friend, level + 1))
+        
+        return -1
+
+
+def display_results(graph, person1, person2):
+    friends_person1 = graph.get_friends(person1)
+    friends_person2 = graph.get_friends(person2)
+    common_friends = graph.get_common_friends(person1, person2)
+    nth_connection = graph.find_nth_connection(person1, person2)
+
+    print(f"Friends of {person1}: {friends_person1}")
+    print(f"Friends of {person2}: {friends_person2}")
+    print(f"Common friends of {person1} and {person2}: {common_friends}")
+    print(f"{person1} and {person2} are {nth_connection}-th connection(s) apart.")
+
+
+def main():
+   
+    graph = FriendshipGraph()
+
+   
+    graph.add_friendship("Alice", "Bob")
+    graph.add_friendship("Bob", "Janice")
+    graph.add_friendship("Alice", "Charlie")
+    graph.add_friendship("Charlie", "David")
+    graph.add_friendship("David", "Emma")
+    graph.add_friendship("Emma", "Frank")
+    graph.add_friendship("Janice", "George")
+
+
+    display_results(graph, "Alice", "Bob")
+    
+
+    display_results(graph, "Alice", "Janice")
+    
+
+    display_results(graph, "Alice", "David")
+    
+    
+    display_results(graph, "Bob", "Emma")
+
+if __name__ == "__main__":
+    main()
+
